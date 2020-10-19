@@ -7,6 +7,7 @@ public class Rotator_NoAngles : MonoBehaviour
     public Transform ATransform;
     public Transform BTransform;
     public Transform CTransform;
+    public float RotationSpeed = 55;
     public bool DrawGizmos = true;
 
     private void Awake()
@@ -26,9 +27,16 @@ public class Rotator_NoAngles : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void Update()
     {
         var state = new RotatorState_NoAngles(ATransform, BTransform, CTransform);
+
+        var targetPosition = state.B_prime;
+
+        var targetAngle = Mathf.Atan2(targetPosition.z, targetPosition.x) * Mathf.Rad2Deg;
+        var deltaEuler = Mathf.DeltaAngle(ATransform.localRotation.eulerAngles.y, -targetAngle);
+        var frameRotation = Mathf.Clamp(deltaEuler, -RotationSpeed * Time.deltaTime, RotationSpeed * Time.deltaTime);
+        ATransform.Rotate(ATransform.up, frameRotation, Space.Self);
     }
 
     private void OnDrawGizmos()
@@ -38,11 +46,10 @@ public class Rotator_NoAngles : MonoBehaviour
         {
             var state = new RotatorState_NoAngles(ATransform, BTransform, CTransform);
 
-            var s1 = state.P3;
-            var s2 = state.P3_prime;
+            var bPosition = state.GetBPosition(out var bPrime);
 
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(state.A, state.B_prime);
+            Gizmos.DrawLine(ATransform.position, bPrime);
 
             //Gizmos.color = Color.blue;
             //Gizmos.DrawLine(state.A, state.P3C);
